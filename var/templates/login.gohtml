@@ -6,7 +6,7 @@
 <body>
 
 {{if .OK}}
-<div>Hello {{.Name}}</div>
+<div>Hello {{.Name}}. Token expires at {{.ExpiresAt|dateISOish}}</div>
 {{else}}
 <div>Something didn't work...</div>
 {{end}}

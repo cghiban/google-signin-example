@@ -5,4 +5,9 @@ https://developers.google.com/identity/gsi/web/guides/overview
 
 (You'll need to set the `clientID` and `clientSecret` in `main.go`.
 
+Then:
+
+`bash
+go run main.go
+`
 

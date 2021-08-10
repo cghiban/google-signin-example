@@ -63,28 +63,15 @@ func login(rw http.ResponseWriter, r *http.Request) {
 		fmt.Println("got POST csrf token:", csrf_token_cookie)
 	}
 
-	//if csrf_token == "" {
 	csrf_token_post = r.Form.Get("g_csrf_token")
 	fmt.Println("got POST csrf token:", csrf_token_post)
-	//}
 
-	fmt.Println(r.Header)
-	for k, v := range r.Header {
-		fmt.Printf(" ** %s\t%v\n", k, v)
-	}
-
-	fmt.Println("csrf_token_cookie: ", csrf_token_cookie)
-	fmt.Println("csrf_token_post: ", csrf_token_post)
-	fmt.Println("credential: ", credential)
-
-	//ctx := r.Context()
-
-	//myToken := strings.Replace(r.Header.Get("Authorization"), "Bearer ", "", 1)
+	fmt.Println("csrf_token_cookie == csrf_token_post: ", csrf_token_cookie == csrf_token_post)
 
 	var claims Claims
 
 	token, err := jwt.ParseWithClaims(credential, &claims, func(token *jwt.Token) (interface{}, error) {
-		// Don't forget to validate the alg is what you expect:
+		// Don't forget to validate the alg is what you expect
 		if _, ok := token.Method.(*jwt.SigningMethodRSA); !ok {
 			return nil, fmt.Errorf("Unexpected signing method: %v", token.Header["alg"])
 		}
@@ -102,13 +89,15 @@ func login(rw http.ResponseWriter, r *http.Request) {
 	fmt.Printf("claims.Audience: %+v\n", claims.Audience)
 	fmt.Printf("tocken.Valid: %+v\n", token.Valid)
 
-	//fmt.Fprintf(rw, "Hello %s", claims.Name)
+	expiresAt := time.Unix(claims.ExpiresAt, 0)
 	data := struct {
-		Name string
-		OK   bool
+		Name      string
+		OK        bool
+		ExpiresAt time.Time
 	}{
-		Name: claims.Name,
-		OK:   token.Valid,
+		Name:      claims.Name,
+		OK:        token.Valid,
+		ExpiresAt: expiresAt,
 	}
 	if err := T.ExecuteTemplate(rw, "login.gohtml", data); err != nil {
 		http.Error(rw, err.Error(), http.StatusInternalServerError)
@@ -117,12 +106,12 @@ func login(rw http.ResponseWriter, r *http.Request) {
 }
 
 func myLookupKey(kid string) (interface{}, error) {
-	fmt.Printf("Kid : %v\n", kid)
 	var keys struct{ Keys []gojwk.Key }
 	parseJSONFromURL("https://www.googleapis.com/oauth2/v3/certs", &keys)
+
 	for _, key := range keys.Keys {
 		if key.Kid == kid {
-			fmt.Printf("Key : %v\n", key)
+			//fmt.Printf("key : %v\n", key)
 			return key.DecodePublicKey()
 		}
 	}
@@ -143,7 +132,7 @@ func parseJSONFromURL(url string, v interface{}) {
 func main() {
 	l := log.New(os.Stdout, "testing google sign in", log.LstdFlags)
 
-	l.Println("about to start server")
+	l.Println("about to start server on localhost:8080")
 
 	funcMap := template.FuncMap{
 		"dateISOish": func(t time.Time) string { return t.Format("2006-01-02 3:04p") },
@@ -183,5 +172,6 @@ func main() {
 	l.Println("Received terminate, graceful shutdown", sig)
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
+
 	s.Shutdown(ctx)
 }
