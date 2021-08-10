@@ -7,7 +7,7 @@ https://developers.google.com/identity/gsi/web/guides/overview
 
 Then:
 
-`bash
+```bash
 go run main.go
-`
+```
 
