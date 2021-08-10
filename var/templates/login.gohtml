@@ -1,0 +1,14 @@
+<!doctype html>
+<html>
+<head>
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
+</head>
+<body>
+
+{{if .OK}}
+<div>Hello {{.Name}}</div>
+{{else}}
+<div>Something didn't work...</div>
+{{end}}
+</body>
+</html>
