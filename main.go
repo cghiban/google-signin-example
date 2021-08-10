@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"log"
 	"net/http"
 	"os"
@@ -131,15 +130,14 @@ func myLookupKey(kid string) (interface{}, error) {
 }
 
 func parseJSONFromURL(url string, v interface{}) {
-	//resp, err := urlfetch.Client(ctx).Get(url)
 	resp, err := http.Get(url)
 	if err != nil {
 		fmt.Println("error fetching JSON: ", err)
 		return
 	}
 	defer resp.Body.Close()
-	body, _ := ioutil.ReadAll(resp.Body)
-	json.Unmarshal(body, v)
+	decoder := json.NewDecoder(resp.Body)
+	decoder.Decode(v)
 }
 
 func main() {
